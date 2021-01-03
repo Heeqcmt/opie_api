@@ -1,28 +1,19 @@
-const { DynamoDB } = require("aws-sdk");
-var AWS = require("aws-sdk");
+const AWS = require('aws-sdk');
+const dynamo = new AWS.DynamoDB.DocumentClient();
 
-var docClient = new AWS.DynamoDB.DocumentClient({region:'us-east-1'});
-
-var params = {
-    TableName: "Events",
-    ProjectionExpression: "province, Info"
-};
-
-async function scanEvents()
+const getEvents = async ()=>
 {
-    var result = await docClient.scan(params).promise();
-    console.log(result.Items);
+    const result = await dynamo.scan({
+        TableName:process.env.Table_Name
+    }).promise();
+    
     return result.Items;
 }
-
-exports.handler = async (event) =>
-{
-    console.log(event);
-    let response = scanEvents();
-
-    console.log(JSON.stringify(response))
-    return {
-        statusCode :200,
-        body: JSON.stringify(response)
+exports.handler = async (event) => {
+    const data = await getEvents();
+    const response = {
+        statusCode: 200,
+        body: JSON.stringify(data),
     };
-}
+    return response;
+};
